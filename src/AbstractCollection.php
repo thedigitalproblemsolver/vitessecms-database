@@ -5,7 +5,7 @@ namespace VitesseCms\Database;
 use VitesseCms\Core\Helpers\InjectableHelper;
 use VitesseCms\Database\Interfaces\BaseCollectionInterface;
 use VitesseCms\Core\Interfaces\InjectableInterface;
-use VitesseCms\Core\Models\Datafield;
+use VitesseCms\Datafield\Models\Datafield;
 use VitesseCms\Core\Traits\BaseObjectTrait;
 use VitesseCms\Database\Utils\MongoUtil;
 use MongoDB\BSON\ObjectID;
