@@ -16,5 +16,8 @@
     "psr-4": {
       "VitesseCms\\Database\\": "src/"
     }
+  },
+  "require": {
+    "mongodb/mongodb": "^1.0.0"
   }
 }
