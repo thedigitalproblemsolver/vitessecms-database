@@ -20,6 +20,6 @@
   "require": {
     "mongodb/mongodb": "^1.0.0",
     "vitessecms/core": "~0.0.1",
-    "vitessecms/datafield": "~0.0.4"
+    "vitessecms/datafield": "~0.0."
   }
 }
