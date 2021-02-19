@@ -23,7 +23,8 @@ class FindValue
         string $key,
         $value,
         string $type = 'string'
-    ) {
+    )
+    {
         $this->key = $key;
         $this->value = $value;
         $this->type = $type;
