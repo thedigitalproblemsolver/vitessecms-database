@@ -441,6 +441,7 @@ abstract class AbstractCollection
         }
     }
 
+    //TODO move to listener
     public function afterSave()
     {
     }
