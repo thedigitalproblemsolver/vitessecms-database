@@ -2,6 +2,7 @@
 
 namespace VitesseCms\Database\Utils;
 
+use Exception;
 use MongoDB\BSON\ObjectID;
 
 class MongoUtil
@@ -16,7 +17,7 @@ class MongoUtil
             new ObjectID($idToTest);
 
             return true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return false;
         }
     }

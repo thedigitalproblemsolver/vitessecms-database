@@ -2,7 +2,9 @@
 
 namespace VitesseCms\Database\Models;
 
-class FindValueIterator extends \ArrayIterator
+use ArrayIterator;
+
+class FindValueIterator extends ArrayIterator
 {
     public function __construct(array $findValues = [])
     {

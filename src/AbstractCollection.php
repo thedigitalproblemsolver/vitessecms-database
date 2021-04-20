@@ -15,10 +15,10 @@ use Phalcon\Mvc\Collection\Behavior\SoftDelete;
 use Phalcon\Mvc\Collection\Behavior\Timestampable;
 use Phalcon\Mvc\Collection\Exception;
 use Phalcon\Mvc\MongoCollection;
-use \is_object;
-use \is_string;
-use \is_array;
-use \DateTime;
+use is_object;
+use is_string;
+use is_array;
+use DateTime;
 
 //TODO aparte admin AbstractCollection maken?
 abstract class AbstractCollection

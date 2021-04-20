@@ -2,7 +2,9 @@
 
 namespace VitesseCms\Database\Models;
 
-class FindOrderIterator extends \ArrayIterator
+use ArrayIterator;
+
+class FindOrderIterator extends ArrayIterator
 {
     public function __construct(array $findOrder = [])
     {
