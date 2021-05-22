@@ -493,13 +493,13 @@ abstract class AbstractCollection
         return new DateTime($this->createdAt ?? '');
     }
 
-    public function getUpdatedOn(): ?DateTime
+    public function getUpdatedOn(): DateTime
     {
         if ($this->updatedOn !== null) :
             return DateTime::createFromFormat('Y-m-d H:i:s', $this->updatedOn);
         endif;
 
-        return null;
+        return new DateTime($this->createdAt ?? '');
     }
 
     public function isPublished(): bool
