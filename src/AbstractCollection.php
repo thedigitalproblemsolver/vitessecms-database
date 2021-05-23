@@ -441,7 +441,7 @@ abstract class AbstractCollection
         }
     }
 
-    //TODO move to listener
+    //TODO add listener
     public function afterSave()
     {
     }
@@ -461,6 +461,11 @@ abstract class AbstractCollection
         );
 
         return $return;
+    }
+
+    public function beforeSave()
+    {
+        $this->di->eventsManager->fire(get_class($this).':beforeSave', $this);
     }
 
     public function beforeDelete()
@@ -541,5 +546,10 @@ abstract class AbstractCollection
         $this->extraAdminListButtons = $extraAdminListButtons;
 
         return $this;
+    }
+
+    public function getDi(): InjectableInterface
+    {
+        return $this->di;
     }
 }
