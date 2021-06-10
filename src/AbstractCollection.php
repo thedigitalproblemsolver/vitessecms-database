@@ -457,7 +457,8 @@ abstract class AbstractCollection
             $return['_dirtyState'],
             $return['_connection'],
             $return['_errorMessages'],
-            $return['_skipped']
+            $return['_skipped'],
+            $return['di']
         );
 
         return $return;
