@@ -5,7 +5,6 @@ namespace VitesseCms\Database;
 use VitesseCms\Core\Helpers\InjectableHelper;
 use VitesseCms\Database\Interfaces\BaseCollectionInterface;
 use VitesseCms\Core\Interfaces\InjectableInterface;
-use VitesseCms\Datafield\Models\Datafield;
 use VitesseCms\Core\Traits\BaseObjectTrait;
 use VitesseCms\Database\Utils\MongoUtil;
 use MongoDB\BSON\ObjectID;
@@ -278,23 +277,6 @@ abstract class AbstractCollection
     {
         if (!is_object($this->di)) :
             $this->di = new InjectableHelper();
-        endif;
-    }
-
-    public function bindByDatagroup(AbstractCollection $datagroup, array $data)
-    {
-        $fields = $datagroup->_('datafields');
-        if (is_array($fields)) :
-            foreach ($fields as $field) :
-                $datafield = Datafield::findById($field['id']);
-                if ($datafield && isset($data[$datafield->_('calling_name')])) :
-                    $this->set($datafield->_('calling_name'), $data[$datafield->_('calling_name')]);
-                endif;
-
-                if ($datafield && isset($data['BSON_' . $datafield->_('calling_name')])) :
-                    $this->set('BSON_' . $datafield->_('calling_name'), $data['BSON_' . $datafield->_('calling_name')]);
-                endif;
-            endforeach;
         endif;
     }
 
