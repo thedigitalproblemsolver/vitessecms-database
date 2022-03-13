@@ -20,6 +20,6 @@
   "require": {
     "ext-mongodb": "*",
     "mongodb/mongodb": "^1.0.0",
-    "vitessecms/core": "~0.2.20"
+    "vitessecms/core": "~0.2.21"
   }
 }
