@@ -304,7 +304,7 @@ abstract class AbstractCollection
 
     public static function setFindValue(
         string $key,
-        $value,
+               $value,
         string $type = 'string'
     ): void
     {
@@ -326,6 +326,9 @@ abstract class AbstractCollection
                     '$gt' => $value[0],
                     '$lt' => $value[1]
                 ];
+                break;
+            case 'in':
+                self::$findValue[$key] = ['$in' => $value];
                 break;
             default:
                 self::$findValue[$key] = $value;
