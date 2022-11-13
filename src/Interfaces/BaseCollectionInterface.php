@@ -2,8 +2,8 @@
 
 namespace VitesseCms\Database\Interfaces;
 
+use Phalcon\Incubator\MongoDB\Mvc\CollectionInterface;
 use VitesseCms\Core\Interfaces\BaseObjectInterface;
-use Phalcon\Mvc\CollectionInterface;
 
 interface BaseCollectionInterface extends BaseObjectInterface, CollectionInterface
 {
