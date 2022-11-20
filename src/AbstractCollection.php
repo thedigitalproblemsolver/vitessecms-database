@@ -5,15 +5,12 @@ namespace VitesseCms\Database;
 use DateTime;
 use MongoDB\BSON\ObjectID;
 use MongoDB\BSON\Regex;
-use Phalcon\Di\DiInterface;
 use Phalcon\Http\Request;
 use Phalcon\Incubator\MongoDB\Mvc\Collection;
 use Phalcon\Incubator\MongoDB\Mvc\Collection\Behavior\SoftDelete;
 use Phalcon\Incubator\MongoDB\Mvc\Collection\Behavior\Timestampable;
 use Phalcon\Incubator\MongoDB\Mvc\CollectionInterface;
 use Traversable;
-use VitesseCms\Core\Helpers\InjectableHelper;
-use VitesseCms\Core\Interfaces\InjectableInterface;
 use VitesseCms\Core\Traits\BaseObjectTrait;
 use VitesseCms\Database\Interfaces\BaseCollectionInterface;
 use VitesseCms\Database\Utils\MongoUtil;
@@ -29,6 +26,7 @@ abstract class AbstractCollection
      * @var array
      */
     public static $findValue = [];
+
     /**
      * @var bool
      */
@@ -73,17 +71,10 @@ abstract class AbstractCollection
      * @var string
      */
     protected $adminListName;
-
-    /**
-     * @var InjectableInterface
-     */
-    protected $di;
-
     /**
      * @var string
      */
     protected $adminListExtra;
-
     /**
      * @var string
      */
@@ -184,9 +175,6 @@ abstract class AbstractCollection
         endif;
     }
 
-    /**
-     * @return BaseCollectionInterface[]
-     */
     public static function findAll(): array
     {
         if (self::$findParseFilter) :
@@ -208,7 +196,7 @@ abstract class AbstractCollection
 
         self::reset();
 
-        return $result;
+        return $result->toArray();
     }
 
     public static function parseFilterInput()
@@ -293,6 +281,24 @@ abstract class AbstractCollection
         return $item;
     }
 
+    public function toArray(): array
+    {
+        $return = parent::toArray();
+        unset(
+            $return['_dependencyInjector'],
+            $return['_modelsManager'],
+            $return['_source'],
+            $return['_operationMade'],
+            $return['_dirtyState'],
+            $return['_connection'],
+            $return['_errorMessages'],
+            $return['_skipped'],
+            $return['di']
+        );
+
+        return $return;
+    }
+
     public static function setFindLimit(int $limit): void
     {
         self::$findLimit = $limit;
@@ -340,6 +346,20 @@ abstract class AbstractCollection
         return $item;
     }
 
+    /**
+     * @deprecated removed from Models
+     */
+    public function onConstruct()
+    {
+    }
+
+    /**
+     * @deprecated removed from Models
+     */
+    public function afterFetch()
+    {
+    }
+
     public function initialize()
     {
         $this->addBehavior(new SoftDelete([
@@ -365,27 +385,6 @@ abstract class AbstractCollection
         if ($this->published === null) :
             $this->published = false;
         endif;
-
-        if (!is_object($this->di)) :
-            $this->di = new InjectableHelper();
-        endif;
-    }
-
-    public function onConstruct()
-    {
-        if (!is_object($this->di)) :
-            $this->di = new InjectableHelper();
-        endif;
-    }
-
-    /**
-     * @deprecated move to listener
-     */
-    public function afterFetch()
-    {
-        if (!is_object($this->di)) :
-            $this->di = new InjectableHelper();
-        endif;
     }
 
     public function getAdminlistName(): string
@@ -404,6 +403,8 @@ abstract class AbstractCollection
         return $this;
     }
 
+    //TODO add listener
+
     public function save(): bool
     {
         if ($this->getId() === null) :
@@ -420,32 +421,13 @@ abstract class AbstractCollection
         }
     }
 
-    //TODO add listener
     public function afterSave()
     {
     }
 
-    public function toArray(): array
-    {
-        $return = parent::toArray();
-        unset(
-            $return['_dependencyInjector'],
-            $return['_modelsManager'],
-            $return['_source'],
-            $return['_operationMade'],
-            $return['_dirtyState'],
-            $return['_connection'],
-            $return['_errorMessages'],
-            $return['_skipped'],
-            $return['di']
-        );
-
-        return $return;
-    }
-
     public function beforeSave()
     {
-        $this->di->eventsManager->fire(get_class($this) . ':beforeSave', $this);
+        $this->collectionsManager->notifyEvent(get_class($this) . ':beforeSave', $this);
     }
 
     public function beforeDelete()
@@ -526,10 +508,5 @@ abstract class AbstractCollection
         $this->extraAdminListButtons = $extraAdminListButtons;
 
         return $this;
-    }
-
-    public function getDI(): DiInterface
-    {
-        return $this->di;
     }
 }
