@@ -425,6 +425,11 @@ abstract class AbstractCollection
     {
     }
 
+    public function resetId(): void
+    {
+        $this->_id = null;
+    }
+
     public function beforeSave()
     {
         $this->collectionsManager->notifyEvent(get_class($this) . ':beforeSave', $this);
