@@ -2,23 +2,22 @@
 
 namespace VitesseCms\Database;
 
-use VitesseCms\Core\Helpers\InjectableHelper;
-use VitesseCms\Database\Interfaces\BaseCollectionInterface;
-use VitesseCms\Core\Interfaces\InjectableInterface;
-use VitesseCms\Core\Traits\BaseObjectTrait;
-use VitesseCms\Database\Utils\MongoUtil;
+use DateTime;
 use MongoDB\BSON\ObjectID;
 use MongoDB\BSON\Regex;
 use Phalcon\Http\Request;
-use Phalcon\Mvc\Collection\Behavior\SoftDelete;
-use Phalcon\Mvc\Collection\Behavior\Timestampable;
-use Phalcon\Mvc\Collection\Exception;
-use Phalcon\Mvc\MongoCollection;
-use DateTime;
+use Phalcon\Incubator\MongoDB\Mvc\Collection;
+use Phalcon\Incubator\MongoDB\Mvc\Collection\Behavior\SoftDelete;
+use Phalcon\Incubator\MongoDB\Mvc\Collection\Behavior\Timestampable;
+use Phalcon\Incubator\MongoDB\Mvc\CollectionInterface;
+use Traversable;
+use VitesseCms\Core\Traits\BaseObjectTrait;
+use VitesseCms\Database\Interfaces\BaseCollectionInterface;
+use VitesseCms\Database\Utils\MongoUtil;
 
 //TODO aparte admin AbstractCollection maken?
 abstract class AbstractCollection
-    extends MongoCollection
+    extends Collection
     implements BaseCollectionInterface
 {
     use BaseObjectTrait;
@@ -27,6 +26,7 @@ abstract class AbstractCollection
      * @var array
      */
     public static $findValue = [];
+
     /**
      * @var bool
      */
@@ -71,39 +71,14 @@ abstract class AbstractCollection
      * @var string
      */
     protected $adminListName;
-
-    /**
-     * @var InjectableInterface
-     */
-    protected $di;
-
     /**
      * @var string
      */
     protected $adminListExtra;
-
     /**
      * @var string
      */
     protected $extraAdminListButtons;
-
-    public static function find(?array $parameters = null): array
-    {
-        $params = [
-            'deletedOn' => null,
-            'published' => true,
-        ];
-
-        if (isset($parameters['limit'])) :
-            $params['limit'] = $parameters['limit'];
-
-        endif;
-        $item = parent::find([$params]);
-
-        self::reset();
-
-        return $item;
-    }
 
     public static function count(?array $parameters = null): int
     {
@@ -113,6 +88,79 @@ abstract class AbstractCollection
         self::reset();
 
         return $number;
+    }
+
+    public static function buildFindParameters(): array
+    {
+        if (self::$findDeletedOn) :
+            self::setFindValue('deletedOn', null);
+        endif;
+
+        if (self::$findPublished) :
+            self::setFindValue('published', true);
+        endif;
+
+        return self::$findValue;
+    }
+
+    public static function setFindValue(
+        string $key,
+               $value,
+        string $type = 'string'
+    ): void
+    {
+        switch ($type) :
+            case 'like':
+                self::$findValue[$key] = new Regex(preg_quote($value, '') . '(.)?', 'ig');
+                break;
+            case 'not':
+                self::$findValue[$key] = ['$ne' => $value];
+                break;
+            case 'greater':
+                self::$findValue[$key] = ['$gt' => $value];
+                break;
+            case 'smaller':
+                self::$findValue[$key] = ['$lt' => $value];
+                break;
+            case 'between':
+                self::$findValue[$key] = [
+                    '$gt' => $value[0],
+                    '$lt' => $value[1]
+                ];
+                break;
+            case 'in':
+                self::$findValue[$key] = ['$in' => $value];
+                break;
+            default:
+                self::$findValue[$key] = $value;
+                break;
+        endswitch;
+    }
+
+    public static function reset()
+    {
+        self::$findValue = [];
+        self::$findOrdering = [];
+        self::$fields = null;
+        self::setFindDeletedOn(true);
+        self::setFindPublished(true);
+        self::setFindParseFilter(false);
+        self::$findLimit = 99;
+    }
+
+    public static function setFindDeletedOn(bool $state)
+    {
+        self::$findDeletedOn = $state;
+    }
+
+    public static function setFindPublished(bool $state)
+    {
+        self::$findPublished = $state;
+    }
+
+    public static function setFindParseFilter(bool $state)
+    {
+        self::$findParseFilter = $state;
     }
 
     public static function addFindOrder(string $key, int $direction = 1)
@@ -127,9 +175,6 @@ abstract class AbstractCollection
         endif;
     }
 
-    /**
-     * @return BaseCollectionInterface[]
-     */
     public static function findAll(): array
     {
         if (self::$findParseFilter) :
@@ -151,7 +196,7 @@ abstract class AbstractCollection
 
         self::reset();
 
-        return $result;
+        return $result->toArray();
     }
 
     public static function parseFilterInput()
@@ -218,6 +263,42 @@ abstract class AbstractCollection
         endforeach;
     }
 
+    public static function find(array $parameters = []): Traversable
+    {
+        $params = [
+            'deletedOn' => null,
+            'published' => true,
+        ];
+
+        if (isset($parameters['limit'])) :
+            $params['limit'] = $parameters['limit'];
+
+        endif;
+        $item = parent::find([$params]);
+
+        self::reset();
+
+        return $item;
+    }
+
+    public function toArray(): array
+    {
+        $return = parent::toArray();
+        unset(
+            $return['_dependencyInjector'],
+            $return['_modelsManager'],
+            $return['_source'],
+            $return['_operationMade'],
+            $return['_dirtyState'],
+            $return['_connection'],
+            $return['_errorMessages'],
+            $return['_skipped'],
+            $return['di']
+        );
+
+        return $return;
+    }
+
     public static function setFindLimit(int $limit): void
     {
         self::$findLimit = $limit;
@@ -229,6 +310,53 @@ abstract class AbstractCollection
     }
 
     public static function setRenderFields(bool $value)
+    {
+    }
+
+    public static function findById($id): ?CollectionInterface
+    {
+        if (empty($id) || !MongoUtil::isObjectId((string)$id)) :
+            return null;
+        endif;
+
+        if (!is_object($id)) {
+            $mongoId = new ObjectID($id);
+        } else {
+            $mongoId = $id;
+        }
+
+        self::setFindValue('_id', $mongoId);
+
+        return self::findFirst();
+    }
+
+    public static function findFirst(array $parameters = []): ?CollectionInterface
+    {
+        $parameters[] = self::buildFindParameters();
+        if (self::$findOrdering) :
+            $parameters['sort'] = self::$findOrdering;
+        endif;
+
+        $item = parent::findFirst(
+            $parameters
+        );
+
+        self::reset();
+
+        return $item;
+    }
+
+    /**
+     * @deprecated removed from Models
+     */
+    public function onConstruct()
+    {
+    }
+
+    /**
+     * @deprecated removed from Models
+     */
+    public function afterFetch()
     {
     }
 
@@ -257,138 +385,6 @@ abstract class AbstractCollection
         if ($this->published === null) :
             $this->published = false;
         endif;
-
-        if (!is_object($this->di)) :
-            $this->di = new InjectableHelper();
-        endif;
-    }
-
-    public function onConstruct()
-    {
-        if (!is_object($this->di)) :
-            $this->di = new InjectableHelper();
-        endif;
-    }
-
-    /**
-     * @deprecated move to listener
-     */
-    public function afterFetch()
-    {
-        if (!is_object($this->di)) :
-            $this->di = new InjectableHelper();
-        endif;
-    }
-
-    /**
-     * @param mixed|string $id
-     *
-     * @return array|bool|BaseCollectionInterface
-     */
-    public static function findById($id)
-    {
-        if (empty($id) || !MongoUtil::isObjectId((string)$id)) :
-            return false;
-        endif;
-
-        if (!is_object($id)) {
-            $mongoId = new ObjectID($id);
-        } else {
-            $mongoId = $id;
-        }
-
-        self::setFindValue('_id', $mongoId);
-
-        return self::findFirst();
-    }
-
-    public static function setFindValue(
-        string $key,
-               $value,
-        string $type = 'string'
-    ): void
-    {
-        switch ($type) :
-            case 'like':
-                self::$findValue[$key] = new Regex(preg_quote($value, '') . '(.)?', 'ig');
-                break;
-            case 'not':
-                self::$findValue[$key] = ['$ne' => $value];
-                break;
-            case 'greater':
-                self::$findValue[$key] = ['$gt' => $value];
-                break;
-            case 'smaller':
-                self::$findValue[$key] = ['$lt' => $value];
-                break;
-            case 'between':
-                self::$findValue[$key] = [
-                    '$gt' => $value[0],
-                    '$lt' => $value[1]
-                ];
-                break;
-            case 'in':
-                self::$findValue[$key] = ['$in' => $value];
-                break;
-            default:
-                self::$findValue[$key] = $value;
-                break;
-        endswitch;
-    }
-
-    public static function findFirst(?array $parameters = null)
-    {
-        $parameters[] = self::buildFindParameters();
-        if (self::$findOrdering) :
-            $parameters['sort'] = self::$findOrdering;
-        endif;
-
-        $item = parent::findFirst(
-            $parameters
-        );
-
-        self::reset();
-
-        return $item;
-    }
-
-    public static function buildFindParameters(): array
-    {
-        if (self::$findDeletedOn) :
-            self::setFindValue('deletedOn', null);
-        endif;
-
-        if (self::$findPublished) :
-            self::setFindValue('published', true);
-        endif;
-
-        return self::$findValue;
-    }
-
-    public static function reset()
-    {
-        self::$findValue = [];
-        self::$findOrdering = [];
-        self::$fields = null;
-        self::setFindDeletedOn(true);
-        self::setFindPublished(true);
-        self::setFindParseFilter(false);
-        self::$findLimit = 99;
-    }
-
-    public static function setFindDeletedOn(bool $state)
-    {
-        self::$findDeletedOn = $state;
-    }
-
-    public static function setFindPublished(bool $state)
-    {
-        self::$findPublished = $state;
-    }
-
-    public static function setFindParseFilter(bool $state)
-    {
-        self::$findParseFilter = $state;
     }
 
     public function getAdminlistName(): string
@@ -407,6 +403,8 @@ abstract class AbstractCollection
         return $this;
     }
 
+    //TODO add listener
+
     public function save(): bool
     {
         if ($this->getId() === null) :
@@ -423,32 +421,18 @@ abstract class AbstractCollection
         }
     }
 
-    //TODO add listener
     public function afterSave()
     {
     }
 
-    public function toArray(): array
+    public function resetId(): void
     {
-        $return = parent::toArray();
-        unset(
-            $return['_dependencyInjector'],
-            $return['_modelsManager'],
-            $return['_source'],
-            $return['_operationMade'],
-            $return['_dirtyState'],
-            $return['_connection'],
-            $return['_errorMessages'],
-            $return['_skipped'],
-            $return['di']
-        );
-
-        return $return;
+        $this->_id = null;
     }
 
     public function beforeSave()
     {
-        $this->di->eventsManager->fire(get_class($this).':beforeSave', $this);
+        $this->collectionsManager->notifyEvent(get_class($this) . ':beforeSave', $this);
     }
 
     public function beforeDelete()
@@ -529,10 +513,5 @@ abstract class AbstractCollection
         $this->extraAdminListButtons = $extraAdminListButtons;
 
         return $this;
-    }
-
-    public function getDi(): InjectableInterface
-    {
-        return $this->di;
     }
 }

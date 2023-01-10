@@ -23,8 +23,8 @@
   },
   "require": {
     "ext-mongodb": "*",
-    "mongodb/mongodb": "^1.0.0",
+    "mongodb/mongodb": "~1.8.0",
     "vitessecms/core": "~0.2.24",
-    "phalcon/incubator-mongodb": "~1.0.1"
+    "thedigitalproblemsolver/incubator-mongodb": "^1.2"
   }
 }
