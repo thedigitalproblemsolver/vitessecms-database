@@ -2,10 +2,14 @@
   "name": "vitessecms/database",
   "type": "library",
   "description": "Database module for VitesseCms",
-  "keywords": ["php","phalcon","vitessecms"],
+  "keywords": [
+    "php",
+    "phalcon",
+    "vitessecms"
+  ],
   "homepage": "https://github.com/thedigitalproblemsolver/VitesseCMS",
   "license": "GPL-2.0-or-later",
-  "version": "0.2.6",
+  "version": "0.3.0",
   "authors": [
     {
       "name": "Jasper Jaklofsky",
@@ -19,7 +23,8 @@
   },
   "require": {
     "ext-mongodb": "*",
-    "mongodb/mongodb": "^1.0.0",
-    "vitessecms/core": "~0.2.22"
+    "mongodb/mongodb": "~1.8.0",
+    "vitessecms/core": "~0.3.0",
+    "thedigitalproblemsolver/incubator-mongodb": "^1.2"
   }
 }
