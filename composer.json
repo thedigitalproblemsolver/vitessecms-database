@@ -9,7 +9,7 @@
   ],
   "homepage": "https://github.com/thedigitalproblemsolver/VitesseCMS",
   "license": "GPL-2.0-or-later",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "authors": [
     {
       "name": "Jasper Jaklofsky",
@@ -22,8 +22,6 @@
     }
   },
   "require": {
-    "ext-mongodb": "*",
-    "mongodb/mongodb": "~1.8.0",
     "vitessecms/core": "~0.3.0",
     "thedigitalproblemsolver/incubator-mongodb": "^1.2"
   }
