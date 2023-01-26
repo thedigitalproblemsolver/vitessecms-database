@@ -22,7 +22,7 @@
     }
   },
   "require": {
-    "vitessecms/core": "~0.3.3",
+    "vitessecms/core": "~0.3.5",
     "mongodb/mongodb": "~1.6.0",
     "thedigitalproblemsolver/incubator-mongodb": "^1.2"
   }
