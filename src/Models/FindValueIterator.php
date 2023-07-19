@@ -15,4 +15,11 @@ class FindValueIterator extends ArrayIterator
     {
         return parent::current();
     }
+
+    public function add(FindValue $findValue): FindValueIterator
+    {
+        $this->append($findValue);
+
+        return $this;
+    }
 }
