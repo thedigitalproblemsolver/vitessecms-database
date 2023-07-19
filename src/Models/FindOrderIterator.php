@@ -15,4 +15,11 @@ class FindOrderIterator extends ArrayIterator
     {
         return parent::current();
     }
+
+    public function add(FindOrder $findOrder): FindOrderIterator
+    {
+        $this->append($findOrder);
+
+        return $this;
+    }
 }
