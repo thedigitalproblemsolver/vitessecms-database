@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace VitesseCms\Database;
 
@@ -105,10 +107,9 @@ abstract class AbstractCollection
 
     public static function setFindValue(
         string $key,
-               $value,
+        $value,
         string $type = 'string'
-    ): void
-    {
+    ): void {
         switch ($type) :
             case 'like':
                 self::$findValue[$key] = new Regex(preg_quote($value, '') . '(.)?', 'ig');
@@ -362,10 +363,12 @@ abstract class AbstractCollection
 
     public function initialize()
     {
-        $this->addBehavior(new SoftDelete([
-            'field' => 'deletedOn',
-            'value' => date('Y-m-d H:i:s'),
-        ]));
+        $this->addBehavior(
+            new SoftDelete([
+                'field' => 'deletedOn',
+                'value' => date('Y-m-d H:i:s'),
+            ])
+        );
 
         $this->addBehavior(
             new Timestampable(
@@ -430,13 +433,14 @@ abstract class AbstractCollection
         $this->_id = null;
     }
 
-    public function beforeSave()
+    public function beforeSave(): void
     {
         $this->collectionsManager->notifyEvent(get_class($this) . ':beforeSave', $this);
     }
 
-    public function beforeDelete()
+    public function beforeDelete(): ?bool
     {
+        return $this->getDI()->get('eventsManager')->fire(get_class($this) . ':beforeDelete', $this);
     }
 
     public function afterDelete()
