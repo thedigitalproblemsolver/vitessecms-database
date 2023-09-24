@@ -146,7 +146,7 @@ abstract class AbstractCollection
         self::setFindDeletedOn(true);
         self::setFindPublished(true);
         self::setFindParseFilter(false);
-        self::$findLimit = 99;
+        self::$findLimit = 999;
     }
 
     public static function setFindDeletedOn(bool $state)
