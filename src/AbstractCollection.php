@@ -346,10 +346,7 @@ abstract class AbstractCollection
 
         return $item;
     }
-
-    /**
-     * @deprecated removed from Models
-     */
+    
     public function onConstruct()
     {
     }
