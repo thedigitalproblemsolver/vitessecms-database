@@ -14,9 +14,9 @@ trait TraitRepositoryParseGetById
 
         /** @var AbstractCollection $collection */
         $collection = $this->class::findById($id);
-        if (is_object($collection)):
+        if (is_object($collection)) {
             return $collection;
-        endif;
+        }
 
         return null;
     }
