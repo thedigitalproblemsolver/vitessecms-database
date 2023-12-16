@@ -14,6 +14,7 @@ use Phalcon\Incubator\MongoDB\Mvc\Collection\Behavior\Timestampable;
 use Phalcon\Incubator\MongoDB\Mvc\CollectionInterface;
 use Traversable;
 use VitesseCms\Core\Traits\BaseObjectTrait;
+use VitesseCms\Database\Enums\FindValueTypeEnum;
 use VitesseCms\Database\Interfaces\BaseCollectionInterface;
 use VitesseCms\Database\Utils\MongoUtil;
 
@@ -24,68 +25,24 @@ abstract class AbstractCollection
 {
     use BaseObjectTrait;
 
-    /**
-     * @var array
-     */
-    public static $findValue = [];
-
-    /**
-     * @var bool
-     */
-    protected static $findDeletedOn = true;
-    /**
-     * @var bool
-     */
-    protected static $findPublished = true;
-    /**
-     * @var array
-     */
-    protected static $findOrdering = [];
-    /**
-     * @var ?array
-     */
-    protected static $fields;
-    /**
-     * @var int
-     */
-    protected static $findLimit = 12;
-    /**
-     * @var bool
-     */
-    protected static $findParseFilter = false;
-    /**
-     * @var string
-     */
-    public $createdAt;
-    /**
-     * @var string
-     */
-    public $updatedOn;
-    /**
-     * @var string
-     */
-    public $deletedOn;
-    /**
-     * @var bool
-     */
-    public $published;
-    /**
-     * @var string
-     */
-    protected $adminListName;
-    /**
-     * @var string
-     */
-    protected $adminListExtra;
-    /**
-     * @var string
-     */
-    protected $extraAdminListButtons;
+    public static array $findValue = [];
+    protected static bool $findDeletedOn = true;
+    protected static bool $findPublished = true;
+    protected static array $findOrdering = [];
+    protected static ?array $fields;
+    protected static int $findLimit = 12;
+    protected static bool $findParseFilter = false;
+    public ?string $createdAt;
+    public ?string $updatedOn;
+    public ?string $deletedOn;
+    public bool $published = false;
+    protected ?string $adminListName;
+    protected ?string $adminListExtra;
 
     public static function count(?array $parameters = null): int
     {
         $parameters[] = self::buildFindParameters();
-        $number = (int)parent::count($parameters);
+        $number = parent::count($parameters);
 
         self::reset();
 
@@ -105,37 +62,17 @@ abstract class AbstractCollection
         return self::$findValue;
     }
 
-    public static function setFindValue(
-        string $key,
-        $value,
-        string $type = 'string'
-    ): void {
-        switch ($type) :
-            case 'like':
-                self::$findValue[$key] = new Regex(preg_quote($value, '') . '(.)?', 'ig');
-                break;
-            case 'not':
-                self::$findValue[$key] = ['$ne' => $value];
-                break;
-            case 'greater':
-                self::$findValue[$key] = ['$gt' => $value];
-                break;
-            case 'smaller':
-                self::$findValue[$key] = ['$lt' => $value];
-                break;
-            case 'between':
-                self::$findValue[$key] = [
-                    '$gt' => $value[0],
-                    '$lt' => $value[1]
-                ];
-                break;
-            case 'in':
-                self::$findValue[$key] = ['$in' => $value];
-                break;
-            default:
-                self::$findValue[$key] = $value;
-                break;
-        endswitch;
+    public static function setFindValue(string $key, $value, string $type = 'string'): void
+    {
+        self::$findValue[$key] = match ($type) {
+            FindValueTypeEnum::LIKE->value => new Regex(preg_quote($value, '') . '(.)?', 'ig'),
+            FindValueTypeEnum::NOT->value => ['$ne' => $value],
+            FindValueTypeEnum::GREATER_THAN->value => ['$gt' => $value],
+            FindValueTypeEnum::SMALLER_THAN->value => ['$lt' => $value],
+            FindValueTypeEnum::BETWEEN->value => ['$gt' => $value[0], '$lt' => $value[1]],
+            FindValueTypeEnum::IN_ARRAY->value => ['$in' => $value],
+            default => $value,
+        };
     }
 
     public static function reset()
@@ -346,7 +283,7 @@ abstract class AbstractCollection
 
         return $item;
     }
-    
+
     public function onConstruct()
     {
     }
@@ -452,10 +389,6 @@ abstract class AbstractCollection
     {
     }
 
-    public function addExtraAdminListButtons()
-    {
-    }
-
     public function getAdminButtons(): string
     {
         return '';
@@ -500,18 +433,6 @@ abstract class AbstractCollection
     public function setAdminListExtra(string $adminListExtra): AbstractCollection
     {
         $this->adminListExtra = $adminListExtra;
-
-        return $this;
-    }
-
-    public function getExtraAdminListButtons(): string
-    {
-        return $this->extraAdminListButtons ?? '';
-    }
-
-    public function setExtraAdminListButtons(string $extraAdminListButtons): AbstractCollection
-    {
-        $this->extraAdminListButtons = $extraAdminListButtons;
 
         return $this;
     }

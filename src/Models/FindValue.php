@@ -1,33 +1,16 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace VitesseCms\Database\Models;
 
 class FindValue
 {
-    /**
-     * @var string
-     */
-    protected $key;
-
-    /**
-     * @var mixed
-     */
-    protected $value;
-
-    /**
-     * @var string
-     */
-    protected $type;
-
     public function __construct(
-        string $key,
-        $value,
-        string $type = 'string'
-    )
-    {
-        $this->key = $key;
-        $this->value = $value;
-        $this->type = $type;
+        public readonly string $key,
+        public readonly mixed $value,
+        public readonly string $type = 'string'
+    ) {
     }
 
     public function getKey(): string
@@ -35,7 +18,7 @@ class FindValue
         return $this->key;
     }
 
-    public function getValue()
+    public function getValue(): mixed
     {
         return $this->value;
     }
