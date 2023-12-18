@@ -29,15 +29,15 @@ abstract class AbstractCollection
     protected static bool $findDeletedOn = true;
     protected static bool $findPublished = true;
     protected static array $findOrdering = [];
-    protected static ?array $fields;
+    protected static ?array $fields = [];
     protected static int $findLimit = 12;
     protected static bool $findParseFilter = false;
     public ?string $createdAt;
-    public ?string $updatedOn;
-    public ?string $deletedOn;
+    public ?string $updatedOn = null;
+    public ?string $deletedOn = null;
     public bool $published = false;
-    protected ?string $adminListName;
-    protected ?string $adminListExtra;
+    protected ?string $adminListName = null;
+    protected ?string $adminListExtra = null;
 
     public static function count(?array $parameters = null): int
     {
