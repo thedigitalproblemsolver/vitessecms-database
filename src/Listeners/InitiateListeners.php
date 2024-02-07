@@ -10,8 +10,8 @@ use VitesseCms\Database\Enums\RepositoryEnum;
 
 final class InitiateListeners implements InitiateListenersInterface
 {
-    public static function setListeners(InjectableInterface $di): void
+    public static function setListeners(InjectableInterface $injectable): void
     {
-        $di->eventsManager->attach(RepositoryEnum::LISTENER->value, new RepositoryListener());
+        $injectable->eventsManager->attach(RepositoryEnum::LISTENER->value, new RepositoryListener());
     }
 }
